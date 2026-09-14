@@ -2,6 +2,7 @@ package com.currencyconverter.app.ui
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -22,6 +24,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
@@ -154,8 +157,8 @@ fun ConverterScreen(viewModel: ConverterViewModel) {
 
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 item {
                     AmountCard(
@@ -244,43 +247,60 @@ private fun AmountCard(
     val texts = state.texts
     val base = CurrencyCatalog.get(state.baseCurrency)
     Card(
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
-        Column(Modifier.padding(20.dp)) {
-            Text(texts.amountTitle, style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.height(12.dp))
+        Column(Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
+            Text(texts.amountTitle, style = MaterialTheme.typography.labelLarge)
+            Spacer(Modifier.height(8.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                OutlinedTextField(
+                val fieldColors = MaterialTheme.colorScheme
+                BasicTextField(
                     value = state.amountInput,
                     onValueChange = onAmountChange,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(40.dp)
+                        .border(1.dp, fieldColors.outline, RoundedCornerShape(10.dp))
+                        .padding(horizontal = 12.dp),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    textStyle = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                    placeholder = { Text("0") }
+                    textStyle = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = fieldColors.onSurface
+                    ),
+                    decorationBox = { inner ->
+                        Box(Modifier.fillMaxHeight(), contentAlignment = Alignment.CenterStart) {
+                            if (state.amountInput.isEmpty()) {
+                                Text("0", color = fieldColors.onSurfaceVariant)
+                            }
+                            inner()
+                        }
+                    }
                 )
-                Spacer(Modifier.width(12.dp))
+                Spacer(Modifier.width(8.dp))
                 Surface(
                     modifier = Modifier
-                        .clip(RoundedCornerShape(16.dp))
+                        .height(40.dp)
+                        .clip(RoundedCornerShape(10.dp))
                         .clickable(onClick = onBaseClick),
                     color = MaterialTheme.colorScheme.primaryContainer,
-                    shape = RoundedCornerShape(16.dp)
+                    shape = RoundedCornerShape(10.dp)
                 ) {
-                    Column(
-                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                    Row(
+                        modifier = Modifier.padding(horizontal = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(base.flag, fontSize = 22.sp)
-                        Text(base.code, fontWeight = FontWeight.Bold)
+                        Text(base.flag, fontSize = 16.sp)
+                        Spacer(Modifier.width(6.dp))
+                        Text(base.code, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge)
                     }
                 }
             }
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(6.dp))
             Text(
-                text = "${base.flag} ${base.displayName(state.localeTag)} · ${texts.changeBaseHint}",
+                text = "${base.displayName(state.localeTag)} · ${texts.changeBaseHint}",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -297,26 +317,23 @@ private fun TargetsCard(
 ) {
     val texts = state.texts
     Card(
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
-        Column(Modifier.padding(20.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(texts.convertTo, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
-                IconButton(onClick = onAddClick) {
-                    Icon(Icons.Outlined.Add, contentDescription = texts.addCurrencies)
-                }
-            }
+        Column(Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
+            Text(texts.convertTo, style = MaterialTheme.typography.labelLarge)
+            Spacer(Modifier.height(8.dp))
             FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 state.selectedTargets.filter { it != state.baseCurrency }.forEach { code ->
                     val info = CurrencyCatalog.get(code)
                     FilterChip(
                         selected = true,
                         onClick = { onToggle(code) },
+                        modifier = Modifier.height(32.dp),
                         label = { Text("${info.flag} ${info.code}") },
                         trailingIcon = {
                             Icon(
@@ -333,6 +350,7 @@ private fun TargetsCard(
                 FilterChip(
                     selected = false,
                     onClick = onAddClick,
+                    modifier = Modifier.height(32.dp),
                     label = { Text(texts.add) },
                     leadingIcon = { Icon(Icons.Outlined.Add, contentDescription = null, modifier = Modifier.size(16.dp)) }
                 )
@@ -351,11 +369,11 @@ private fun ConversionCard(
     onSetBase: () -> Unit
 ) {
     Card(
-        shape = RoundedCornerShape(22.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
-        Column(Modifier.padding(18.dp)) {
+        Column(Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(row.flag, fontSize = 28.sp)
                 Spacer(Modifier.width(10.dp))
