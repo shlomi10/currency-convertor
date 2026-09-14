@@ -40,7 +40,7 @@ No Google Play required. Every push to `main` builds an APK and publishes it as 
 אין צורך ב־Google Play. בכל דחיפה ל־`main` נבנה APK ומפורסם ב־Releases כקובץ `.apk` ישיר.
 
 1. Open **[Releases](https://github.com/shlomi10/currency-convertor/releases/latest)**
-2. Download `currency-converter.apk`
+2. Download `currency-convertor.apk`
 3. Transfer it to your phone and install (allow unknown sources)
 
 On the device the launcher name is **ממיר מטבעות**. Inside the app, tap **English** / **עברית** to switch the interface.
