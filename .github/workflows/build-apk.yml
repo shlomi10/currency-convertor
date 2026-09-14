@@ -4,6 +4,9 @@ on:
   push:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -21,7 +24,12 @@ jobs:
       - name: Build debug APK
         run: java -Xmx64m -Xms64m -Dfile.encoding=UTF-8 -classpath gradle/wrapper/gradle-wrapper.jar org.gradle.wrapper.GradleWrapperMain assembleDebug --no-daemon
 
-      - uses: actions/upload-artifact@v7
-        with:
-          name: currency-converter
-          path: app/build/outputs/apk/debug/app-debug.apk
+      - name: Prepare APK
+        run: cp app/build/outputs/apk/debug/app-debug.apk currency-converter.apk
+
+      - name: Publish APK
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release delete latest --yes --cleanup-tag || true
+          gh release create latest currency-converter.apk --title "Latest APK" --notes "Download currency-converter.apk and install it on your phone." --latest

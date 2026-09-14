@@ -35,14 +35,13 @@ Android app that converts one amount into several currencies at once, with live 
 
 ## 📲 Install / התקנה
 
-No Google Play required. Every push to `main` builds an APK with GitHub Actions.
+No Google Play required. Every push to `main` builds an APK and publishes it as a GitHub Release — a real `.apk` file, not a zip.
 
-אין צורך ב־Google Play. בכל דחיפה ל־`main` נבנה APK ב־GitHub Actions.
+אין צורך ב־Google Play. בכל דחיפה ל־`main` נבנה APK ומפורסם ב־Releases כקובץ `.apk` ישיר.
 
-1. Open **[Actions](https://github.com/shlomi10/currency-convertor/actions)**
-2. Open the latest green **Build APK** run
-3. Download the `currency-converter` artifact (`app-debug.apk`)
-4. Transfer it to your phone and install (allow unknown sources)
+1. Open **[Releases](https://github.com/shlomi10/currency-convertor/releases/latest)**
+2. Download `currency-converter.apk`
+3. Transfer it to your phone and install (allow unknown sources)
 
 On the device the launcher name is **ממיר מטבעות**. Inside the app, tap **English** / **עברית** to switch the interface.
 
