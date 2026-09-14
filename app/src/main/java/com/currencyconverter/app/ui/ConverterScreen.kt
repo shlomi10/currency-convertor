@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -51,11 +50,15 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
@@ -83,7 +86,24 @@ fun ConverterScreen(viewModel: ConverterViewModel) {
 
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-    val openMenu: () -> Unit = { scope.launch { drawerState.open() } }
+    val keyboard = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+    val hideKeyboard: () -> Unit = {
+        keyboard?.hide()
+        focusManager.clearFocus()
+    }
+    val openMenu: () -> Unit = {
+        hideKeyboard()
+        scope.launch { drawerState.open() }
+    }
+
+    LaunchedEffect(drawerState) {
+        snapshotFlow { drawerState.targetValue }.collect { value ->
+            if (value == DrawerValue.Open) {
+                hideKeyboard()
+            }
+        }
+    }
 
     DisposableEffect(lifecycleOwner, viewModel) {
         val observer = LifecycleEventObserver { _, event ->
@@ -248,7 +268,8 @@ private fun AmountCard(
                     value = state.amountInput,
                     onValueChange = onAmountChange,
                     modifier = Modifier
-                        .widthIn(min = 72.dp, max = 160.dp)
+                        .weight(1f)
+                        .fillMaxWidth()
                         .height(44.dp),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
