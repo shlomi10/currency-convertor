@@ -2,7 +2,6 @@ package com.currencyconverter.app.ui
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -25,11 +25,9 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.outlined.SwapHoriz
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -122,24 +120,11 @@ fun ConverterScreen(viewModel: ConverterViewModel) {
                     }
                 },
                 title = {
-                    Column {
-                        Text(texts.appTitle, fontWeight = FontWeight.Bold)
-                        Text(
-                            text = statusText(state),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = colors.onPrimary.copy(alpha = 0.85f)
-                        )
-                    }
+                    Text(texts.appTitle, fontWeight = FontWeight.Bold, maxLines = 1)
                 },
                 actions = {
                     TextButton(onClick = viewModel::toggleLanguage) {
-                        Icon(
-                            Icons.Outlined.Language,
-                            contentDescription = texts.languageToggle,
-                            tint = colors.onPrimary
-                        )
-                        Spacer(Modifier.width(4.dp))
-                        Text(texts.languageToggle, color = colors.onPrimary)
+                        Text(texts.languageToggle, color = colors.onPrimary, fontWeight = FontWeight.Bold)
                     }
                     if (state.isRefreshing) {
                         CircularProgressIndicator(
@@ -254,42 +239,42 @@ private fun AmountCard(
         Column(Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
             Text(texts.amountTitle, style = MaterialTheme.typography.labelLarge)
             Spacer(Modifier.height(8.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
                 val fieldColors = MaterialTheme.colorScheme
                 BasicTextField(
                     value = state.amountInput,
                     onValueChange = onAmountChange,
                     modifier = Modifier
-                        .weight(1f)
-                        .height(40.dp)
-                        .border(1.dp, fieldColors.outline, RoundedCornerShape(10.dp))
-                        .padding(horizontal = 12.dp),
+                        .widthIn(min = 72.dp, max = 160.dp)
+                        .height(44.dp),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    textStyle = MaterialTheme.typography.titleMedium.copy(
+                    textStyle = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.Bold,
                         color = fieldColors.onSurface
                     ),
                     decorationBox = { inner ->
                         Box(Modifier.fillMaxHeight(), contentAlignment = Alignment.CenterStart) {
                             if (state.amountInput.isEmpty()) {
-                                Text("0", color = fieldColors.onSurfaceVariant)
+                                Text("0", style = MaterialTheme.typography.headlineSmall, color = fieldColors.onSurfaceVariant)
                             }
                             inner()
                         }
                     }
                 )
-                Spacer(Modifier.width(8.dp))
                 Surface(
                     modifier = Modifier
                         .height(40.dp)
-                        .clip(RoundedCornerShape(10.dp))
+                        .clip(RoundedCornerShape(20.dp))
                         .clickable(onClick = onBaseClick),
                     color = MaterialTheme.colorScheme.primaryContainer,
-                    shape = RoundedCornerShape(10.dp)
+                    shape = RoundedCornerShape(20.dp)
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 10.dp),
+                        modifier = Modifier.padding(horizontal = 12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(base.flag, fontSize = 16.sp)
@@ -298,10 +283,15 @@ private fun AmountCard(
                     }
                 }
             }
-            Spacer(Modifier.height(6.dp))
+            Spacer(Modifier.height(4.dp))
             Text(
-                text = "${base.displayName(state.localeTag)} · ${texts.changeBaseHint}",
+                text = base.displayName(state.localeTag),
                 style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = statusText(state),
+                style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
@@ -321,10 +311,20 @@ private fun ConversionCard(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
-        Column(Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier.padding(start = 12.dp, end = 4.dp, top = 8.dp, bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(12.dp))
+                    .clickable(onClick = onSetBase)
+                    .padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text(row.flag, fontSize = 22.sp)
-                Spacer(Modifier.width(8.dp))
+                Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
                     Text(
                         row.name,
@@ -334,20 +334,21 @@ private fun ConversionCard(
                     )
                     Text(row.code, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                Spacer(Modifier.width(8.dp))
+                Spacer(Modifier.width(10.dp))
                 Text(
                     text = formatMoney(row.converted, row.code, localeTag),
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold, fontSize = 22.sp),
                     color = MaterialTheme.colorScheme.primary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                IconButton(onClick = onSetBase, modifier = Modifier.size(36.dp)) {
-                    Icon(Icons.Outlined.SwapHoriz, contentDescription = texts.setAsBase)
-                }
-                IconButton(onClick = onRemove, modifier = Modifier.size(36.dp)) {
-                    Icon(Icons.Outlined.Close, contentDescription = texts.remove)
-                }
+            }
+            IconButton(onClick = onRemove, modifier = Modifier.size(36.dp)) {
+                Icon(
+                    Icons.Outlined.Close,
+                    contentDescription = texts.remove,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }
@@ -492,7 +493,7 @@ private fun statusText(state: ConverterUiState): String {
         "interbank_closed" -> texts.marketClosed
         else -> ""
     }
-    return "${texts.updatedAt}$time · $freshness$session${texts.everyMinute}"
+    return "${texts.updatedAt}$time · $freshness$session"
 }
 
 private fun selectedFreshness(state: ConverterUiState): String {

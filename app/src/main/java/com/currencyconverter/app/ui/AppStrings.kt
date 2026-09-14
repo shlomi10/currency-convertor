@@ -43,7 +43,7 @@ fun AppLanguage.texts(): UiText = when (this) {
         appTitle = "ממיר מטבעות",
         refresh = "רענון",
         amountTitle = "סכום להמרה",
-        changeBaseHint = "לחצו כאן או על התפריט לבחירת מטבעות",
+        changeBaseHint = "בחירת מטבעות מהתפריט",
         convertTo = "המר אל",
         addCurrencies = "הוספת מטבעות",
         menu = "מטבעות",
@@ -72,13 +72,13 @@ fun AppLanguage.texts(): UiText = when (this) {
         sourceFred = "יומי FRED",
         networkError = "שגיאת רשת",
         genericError = "לא ניתן לעדכן שערים כרגע",
-        languageToggle = "English"
+        languageToggle = "EN"
     )
     AppLanguage.EN -> UiText(
         appTitle = "Currency Converter",
         refresh = "Refresh",
         amountTitle = "Amount to convert",
-        changeBaseHint = "Tap here or the menu to choose currencies",
+        changeBaseHint = "Choose currencies from the menu",
         convertTo = "Convert to",
         addCurrencies = "Add currencies",
         menu = "Currencies",
@@ -107,6 +107,6 @@ fun AppLanguage.texts(): UiText = when (this) {
         sourceFred = "FRED daily",
         networkError = "Network error",
         genericError = "Could not refresh rates right now",
-        languageToggle = "עברית"
+        languageToggle = "עב"
     )
 }
