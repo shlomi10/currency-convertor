@@ -373,31 +373,39 @@ private fun ConversionCard(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
-        Column(Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
+        Column(Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(row.flag, fontSize = 28.sp)
-                Spacer(Modifier.width(10.dp))
+                Text(row.flag, fontSize = 22.sp)
+                Spacer(Modifier.width(8.dp))
                 Column(Modifier.weight(1f)) {
-                    Text(row.name, style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        row.name,
+                        style = MaterialTheme.typography.titleMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                     Text(row.code, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                IconButton(onClick = onSetBase) {
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = formatMoney(row.converted, row.code, localeTag),
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.primary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                IconButton(onClick = onSetBase, modifier = Modifier.size(36.dp)) {
                     Icon(Icons.Outlined.SwapHoriz, contentDescription = texts.setAsBase)
                 }
-                IconButton(onClick = onRemove) {
+                IconButton(onClick = onRemove, modifier = Modifier.size(36.dp)) {
                     Icon(Icons.Outlined.Close, contentDescription = texts.remove)
                 }
             }
-            Spacer(Modifier.height(8.dp))
-            Text(
-                text = formatMoney(row.converted, row.code, localeTag),
-                style = MaterialTheme.typography.displaySmall.copy(fontSize = 30.sp),
-                color = MaterialTheme.colorScheme.primary
-            )
             Text(
                 text = "1 $baseCode = ${formatRate(row.rate, localeTag)} ${row.code} · ${sourceLabel(row.source, texts)}",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = 30.dp, top = 2.dp)
             )
         }
     }
