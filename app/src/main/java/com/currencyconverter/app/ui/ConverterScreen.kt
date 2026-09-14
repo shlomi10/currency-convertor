@@ -7,8 +7,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -27,26 +24,25 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Language
+import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.SwapHoriz
-import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -54,10 +50,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -76,6 +73,7 @@ import java.text.NumberFormat
 import java.util.Currency
 import java.util.Date
 import java.util.Locale
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -84,6 +82,10 @@ fun ConverterScreen(viewModel: ConverterViewModel) {
     val texts = state.texts
     val colors = MaterialTheme.colorScheme
     val lifecycleOwner = LocalLifecycleOwner.current
+
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
+    val openMenu: () -> Unit = { scope.launch { drawerState.open() } }
 
     DisposableEffect(lifecycleOwner, viewModel) {
         val observer = LifecycleEventObserver { _, event ->
@@ -100,9 +102,25 @@ fun ConverterScreen(viewModel: ConverterViewModel) {
         }
     }
 
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            CurrencyDrawer(
+                state = state,
+                onQuery = viewModel::onPickerQuery,
+                onToggleTarget = viewModel::toggleTarget,
+                onSelectBase = viewModel::onBaseChange
+            )
+        }
+    ) {
     Scaffold(
         topBar = {
             TopAppBar(
+                navigationIcon = {
+                    IconButton(onClick = openMenu) {
+                        Icon(Icons.Outlined.Menu, contentDescription = texts.menu)
+                    }
+                },
                 title = {
                     Column {
                         Text(texts.appTitle, fontWeight = FontWeight.Bold)
@@ -164,15 +182,7 @@ fun ConverterScreen(viewModel: ConverterViewModel) {
                     AmountCard(
                         state = state,
                         onAmountChange = viewModel::onAmountChange,
-                        onBaseClick = { viewModel.setPickerOpen(true) }
-                    )
-                }
-
-                item {
-                    TargetsCard(
-                        state = state,
-                        onAddClick = { viewModel.setPickerOpen(true) },
-                        onToggle = viewModel::toggleTarget
+                        onBaseClick = openMenu
                     )
                 }
 
@@ -225,15 +235,6 @@ fun ConverterScreen(viewModel: ConverterViewModel) {
             }
         }
     }
-
-    if (state.pickerOpen) {
-        CurrencyPickerSheet(
-            state = state,
-            onDismiss = { viewModel.setPickerOpen(false) },
-            onQuery = viewModel::onPickerQuery,
-            onToggleTarget = viewModel::toggleTarget,
-            onSelectBase = viewModel::onBaseChange
-        )
     }
 }
 
@@ -307,57 +308,6 @@ private fun AmountCard(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun TargetsCard(
-    state: ConverterUiState,
-    onAddClick: () -> Unit,
-    onToggle: (String) -> Unit
-) {
-    val texts = state.texts
-    Card(
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
-    ) {
-        Column(Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
-            Text(texts.convertTo, style = MaterialTheme.typography.labelLarge)
-            Spacer(Modifier.height(8.dp))
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                state.selectedTargets.filter { it != state.baseCurrency }.forEach { code ->
-                    val info = CurrencyCatalog.get(code)
-                    FilterChip(
-                        selected = true,
-                        onClick = { onToggle(code) },
-                        modifier = Modifier.height(32.dp),
-                        label = { Text("${info.flag} ${info.code}") },
-                        trailingIcon = {
-                            Icon(
-                                Icons.Outlined.Close,
-                                contentDescription = texts.remove,
-                                modifier = Modifier.size(16.dp)
-                            )
-                        },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer
-                        )
-                    )
-                }
-                FilterChip(
-                    selected = false,
-                    onClick = onAddClick,
-                    modifier = Modifier.height(32.dp),
-                    label = { Text(texts.add) },
-                    leadingIcon = { Icon(Icons.Outlined.Add, contentDescription = null, modifier = Modifier.size(16.dp)) }
-                )
-            }
-        }
-    }
-}
-
 @Composable
 private fun ConversionCard(
     row: ConversionRow,
@@ -427,17 +377,14 @@ private fun ErrorCard(message: String, retryLabel: String, onRetry: () -> Unit) 
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun CurrencyPickerSheet(
+private fun CurrencyDrawer(
     state: ConverterUiState,
-    onDismiss: () -> Unit,
     onQuery: (String) -> Unit,
     onToggleTarget: (String) -> Unit,
     onSelectBase: (String) -> Unit
 ) {
     val texts = state.texts
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val query = state.pickerQuery.trim()
     val filtered = CurrencyCatalog.all.filter { info ->
         query.isEmpty() ||
@@ -446,18 +393,13 @@ private fun CurrencyPickerSheet(
             info.nameEn.contains(query, ignoreCase = true)
     }
 
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        dragHandle = { BottomSheetDefaults.DragHandle() }
-    ) {
+    ModalDrawerSheet {
         Column(
             Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                .padding(horizontal = 16.dp)
+                .fillMaxSize()
+                .padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
-            Text(texts.pickerTitle, style = MaterialTheme.typography.titleLarge)
+            Text(texts.convertTo, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             Text(
                 texts.pickerHint,
                 style = MaterialTheme.typography.bodyMedium,
@@ -474,7 +416,7 @@ private fun CurrencyPickerSheet(
             )
             Spacer(Modifier.height(8.dp))
             LazyColumn(
-                modifier = Modifier.height(460.dp),
+                modifier = Modifier.weight(1f),
                 contentPadding = PaddingValues(bottom = 24.dp)
             ) {
                 items(filtered, key = { it.code }) { info ->

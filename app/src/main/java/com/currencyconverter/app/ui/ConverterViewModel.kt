@@ -35,7 +35,6 @@ data class ConverterUiState(
     val lastUpdatedMillis: Long? = null,
     val isRefreshing: Boolean = false,
     val error: String? = null,
-    val pickerOpen: Boolean = false,
     val pickerQuery: String = "",
     val language: AppLanguage = AppLanguage.HE
 ) {
@@ -128,10 +127,6 @@ class ConverterViewModel(
             it.copy(language = if (it.language == AppLanguage.HE) AppLanguage.EN else AppLanguage.HE)
         }
         persist()
-    }
-
-    fun setPickerOpen(open: Boolean) {
-        _state.update { it.copy(pickerOpen = open, pickerQuery = if (open) it.pickerQuery else "") }
     }
 
     fun onPickerQuery(query: String) {
