@@ -32,7 +32,7 @@ class RatesRepository(
             .build()
         client.newCall(request).execute().use { response ->
             if (!response.isSuccessful) {
-                throw IllegalStateException("שגיאת רשת (${response.code})")
+                throw IllegalStateException("network:${response.code}")
             }
             val body = response.body?.string().orEmpty()
             parse(base, body)
@@ -42,9 +42,9 @@ class RatesRepository(
     private fun parse(base: String, body: String): RatesSnapshot {
         val root = JSONObject(body)
         if (root.optString("result") != "success") {
-            throw IllegalStateException("תשובה לא תקינה מהשרת")
+            throw IllegalStateException("invalid")
         }
-        val table = root.optJSONObject("rates") ?: throw IllegalStateException("תשובה לא תקינה מהשרת")
+        val table = root.optJSONObject("rates") ?: throw IllegalStateException("invalid")
         val rates = linkedMapOf<String, Double>()
         rates[base.uppercase()] = 1.0
         val keys = table.keys()

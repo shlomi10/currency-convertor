@@ -17,7 +17,7 @@ import kotlinx.coroutines.launch
 
 data class ConversionRow(
     val code: String,
-    val nameHe: String,
+    val name: String,
     val flag: String,
     val symbol: String,
     val converted: Double,
@@ -36,14 +36,19 @@ data class ConverterUiState(
     val isRefreshing: Boolean = false,
     val error: String? = null,
     val pickerOpen: Boolean = false,
-    val pickerQuery: String = ""
+    val pickerQuery: String = "",
+    val language: AppLanguage = AppLanguage.HE
 ) {
+    val texts: UiText get() = language.texts()
+    val localeTag: String get() = if (language == AppLanguage.EN) "en" else "he"
+
     val amount: Double?
         get() = parseAmount(amountInput)
 
     val rows: List<ConversionRow>
         get() {
             val value = amount ?: return emptyList()
+            val lang = localeTag
             return selectedTargets
                 .filter { it != baseCurrency }
                 .mapNotNull { code ->
@@ -51,7 +56,7 @@ data class ConverterUiState(
                     val info = CurrencyCatalog.get(code)
                     ConversionRow(
                         code = info.code,
-                        nameHe = info.nameHe,
+                        name = info.displayName(lang),
                         flag = info.flag,
                         symbol = info.symbol,
                         converted = value * rate,
@@ -75,7 +80,8 @@ class ConverterViewModel(
             selectedTargets = prefs.loadTargets()
                 .filter { code -> CurrencyCatalog.all.any { it.code == code } }
                 .toSet()
-                .ifEmpty { setOf("USD", "EUR", "GBP") }
+                .ifEmpty { setOf("USD", "EUR", "GBP") },
+            language = if (prefs.loadLanguage() == "en") AppLanguage.EN else AppLanguage.HE
         )
     )
     val state: StateFlow<ConverterUiState> = _state
@@ -117,6 +123,13 @@ class ConverterViewModel(
         persist()
     }
 
+    fun toggleLanguage() {
+        _state.update {
+            it.copy(language = if (it.language == AppLanguage.HE) AppLanguage.EN else AppLanguage.HE)
+        }
+        persist()
+    }
+
     fun setPickerOpen(open: Boolean) {
         _state.update { it.copy(pickerOpen = open, pickerQuery = if (open) it.pickerQuery else "") }
     }
@@ -151,6 +164,7 @@ class ConverterViewModel(
 
     private suspend fun loadRates() {
         val base = _state.value.baseCurrency
+        val texts = _state.value.texts
         _state.update { it.copy(isRefreshing = true, error = null) }
         try {
             val snapshot = repository.fetchRates(base)
@@ -168,10 +182,17 @@ class ConverterViewModel(
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
+            val message = e.message.orEmpty()
+            val error = if (message.startsWith("network")) {
+                val code = message.substringAfter(":", "")
+                if (code.isBlank()) texts.networkError else "${texts.networkError} ($code)"
+            } else {
+                texts.genericError
+            }
             _state.update {
                 it.copy(
                     isRefreshing = false,
-                    error = e.message ?: "לא ניתן לעדכן שערים כרגע"
+                    error = error
                 )
             }
         }
@@ -179,7 +200,12 @@ class ConverterViewModel(
 
     private fun persist() {
         val current = _state.value
-        prefs.save(current.amountInput, current.baseCurrency, current.selectedTargets)
+        prefs.save(
+            current.amountInput,
+            current.baseCurrency,
+            current.selectedTargets,
+            if (current.language == AppLanguage.EN) "en" else "he"
+        )
     }
 }
 

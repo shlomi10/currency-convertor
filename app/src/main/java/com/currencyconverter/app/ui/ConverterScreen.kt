@@ -26,6 +26,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.SwapHoriz
@@ -47,6 +48,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -76,6 +78,7 @@ import java.util.Locale
 @Composable
 fun ConverterScreen(viewModel: ConverterViewModel) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val texts = state.texts
     val colors = MaterialTheme.colorScheme
     val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -99,7 +102,7 @@ fun ConverterScreen(viewModel: ConverterViewModel) {
             TopAppBar(
                 title = {
                     Column {
-                        Text("ממיר מטבעות", fontWeight = FontWeight.Bold)
+                        Text(texts.appTitle, fontWeight = FontWeight.Bold)
                         Text(
                             text = statusText(state),
                             style = MaterialTheme.typography.bodyMedium,
@@ -108,6 +111,15 @@ fun ConverterScreen(viewModel: ConverterViewModel) {
                     }
                 },
                 actions = {
+                    TextButton(onClick = viewModel::toggleLanguage) {
+                        Icon(
+                            Icons.Outlined.Language,
+                            contentDescription = texts.languageToggle,
+                            tint = colors.onPrimary
+                        )
+                        Spacer(Modifier.width(4.dp))
+                        Text(texts.languageToggle, color = colors.onPrimary)
+                    }
                     if (state.isRefreshing) {
                         CircularProgressIndicator(
                             modifier = Modifier
@@ -118,7 +130,7 @@ fun ConverterScreen(viewModel: ConverterViewModel) {
                         )
                     } else {
                         IconButton(onClick = viewModel::refreshNow) {
-                            Icon(Icons.Outlined.Refresh, contentDescription = "רענון")
+                            Icon(Icons.Outlined.Refresh, contentDescription = texts.refresh)
                         }
                     }
                 },
@@ -163,23 +175,27 @@ fun ConverterScreen(viewModel: ConverterViewModel) {
 
                 if (state.isRefreshing && state.rates.isEmpty()) {
                     item {
-                        HintCard("טוען שערי מטבע מ-exchangerate.dev…")
+                        HintCard(texts.loadingRates)
                     }
                 }
 
                 if (state.error != null && state.rates.isEmpty()) {
                     item {
-                        ErrorCard(message = state.error.orEmpty(), onRetry = viewModel::refreshNow)
+                        ErrorCard(
+                            message = state.error.orEmpty(),
+                            retryLabel = texts.retry,
+                            onRetry = viewModel::refreshNow
+                        )
                     }
                 }
 
                 if (state.amount == null) {
                     item {
-                        HintCard("הקלידו סכום כדי לראות המרה לכל מטבע שנבחר")
+                        HintCard(texts.enterAmount)
                     }
                 } else if (state.selectedTargets.none { it != state.baseCurrency }) {
                     item {
-                        HintCard("בחרו לפחות מטבע אחד כדי לראות המרה")
+                        HintCard(texts.pickOneCurrency)
                     }
                 }
 
@@ -187,6 +203,8 @@ fun ConverterScreen(viewModel: ConverterViewModel) {
                     ConversionCard(
                         row = row,
                         baseCode = state.baseCurrency,
+                        texts = texts,
+                        localeTag = state.localeTag,
                         onRemove = { viewModel.removeTarget(row.code) },
                         onSetBase = { viewModel.onBaseChange(row.code) }
                     )
@@ -194,7 +212,7 @@ fun ConverterScreen(viewModel: ConverterViewModel) {
 
                 item {
                     Text(
-                        text = "שערים מ-exchangerate.dev · לידיעה בלבד, לא לסליקה",
+                        text = texts.attribution,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)
@@ -223,6 +241,7 @@ private fun AmountCard(
     onAmountChange: (String) -> Unit,
     onBaseClick: () -> Unit
 ) {
+    val texts = state.texts
     val base = CurrencyCatalog.get(state.baseCurrency)
     Card(
         shape = RoundedCornerShape(24.dp),
@@ -230,7 +249,7 @@ private fun AmountCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(Modifier.padding(20.dp)) {
-            Text("סכום להמרה", style = MaterialTheme.typography.titleMedium)
+            Text(texts.amountTitle, style = MaterialTheme.typography.titleMedium)
             Spacer(Modifier.height(12.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 OutlinedTextField(
@@ -261,7 +280,7 @@ private fun AmountCard(
             }
             Spacer(Modifier.height(8.dp))
             Text(
-                text = "${base.flag} ${base.nameHe} · לחצו להחלפת מטבע המקור",
+                text = "${base.flag} ${base.displayName(state.localeTag)} · ${texts.changeBaseHint}",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -276,6 +295,7 @@ private fun TargetsCard(
     onAddClick: () -> Unit,
     onToggle: (String) -> Unit
 ) {
+    val texts = state.texts
     Card(
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -283,9 +303,9 @@ private fun TargetsCard(
     ) {
         Column(Modifier.padding(20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("המר אל", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                Text(texts.convertTo, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                 IconButton(onClick = onAddClick) {
-                    Icon(Icons.Outlined.Add, contentDescription = "הוספת מטבעות")
+                    Icon(Icons.Outlined.Add, contentDescription = texts.addCurrencies)
                 }
             }
             FlowRow(
@@ -301,7 +321,7 @@ private fun TargetsCard(
                         trailingIcon = {
                             Icon(
                                 Icons.Outlined.Close,
-                                contentDescription = "הסרה",
+                                contentDescription = texts.remove,
                                 modifier = Modifier.size(16.dp)
                             )
                         },
@@ -313,7 +333,7 @@ private fun TargetsCard(
                 FilterChip(
                     selected = false,
                     onClick = onAddClick,
-                    label = { Text("הוספה") },
+                    label = { Text(texts.add) },
                     leadingIcon = { Icon(Icons.Outlined.Add, contentDescription = null, modifier = Modifier.size(16.dp)) }
                 )
             }
@@ -325,6 +345,8 @@ private fun TargetsCard(
 private fun ConversionCard(
     row: ConversionRow,
     baseCode: String,
+    texts: UiText,
+    localeTag: String,
     onRemove: () -> Unit,
     onSetBase: () -> Unit
 ) {
@@ -338,24 +360,24 @@ private fun ConversionCard(
                 Text(row.flag, fontSize = 28.sp)
                 Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
-                    Text(row.nameHe, style = MaterialTheme.typography.titleMedium)
+                    Text(row.name, style = MaterialTheme.typography.titleMedium)
                     Text(row.code, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 IconButton(onClick = onSetBase) {
-                    Icon(Icons.Outlined.SwapHoriz, contentDescription = "הפוך למטבע מקור")
+                    Icon(Icons.Outlined.SwapHoriz, contentDescription = texts.setAsBase)
                 }
                 IconButton(onClick = onRemove) {
-                    Icon(Icons.Outlined.Close, contentDescription = "הסרה")
+                    Icon(Icons.Outlined.Close, contentDescription = texts.remove)
                 }
             }
             Spacer(Modifier.height(8.dp))
             Text(
-                text = formatMoney(row.converted, row.code),
+                text = formatMoney(row.converted, row.code, localeTag),
                 style = MaterialTheme.typography.displaySmall.copy(fontSize = 30.sp),
                 color = MaterialTheme.colorScheme.primary
             )
             Text(
-                text = "1 $baseCode = ${formatRate(row.rate)} ${row.code} · ${sourceLabel(row.source)}",
+                text = "1 $baseCode = ${formatRate(row.rate, localeTag)} ${row.code} · ${sourceLabel(row.source, texts)}",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -374,7 +396,7 @@ private fun HintCard(text: String) {
 }
 
 @Composable
-private fun ErrorCard(message: String, onRetry: () -> Unit) {
+private fun ErrorCard(message: String, retryLabel: String, onRetry: () -> Unit) {
     Surface(
         shape = RoundedCornerShape(18.dp),
         color = MaterialTheme.colorScheme.errorContainer
@@ -382,7 +404,7 @@ private fun ErrorCard(message: String, onRetry: () -> Unit) {
         Column(Modifier.padding(16.dp)) {
             Text(message, color = MaterialTheme.colorScheme.onErrorContainer)
             Spacer(Modifier.height(8.dp))
-            Button(onClick = onRetry) { Text("נסו שוב") }
+            Button(onClick = onRetry) { Text(retryLabel) }
         }
     }
 }
@@ -396,12 +418,14 @@ private fun CurrencyPickerSheet(
     onToggleTarget: (String) -> Unit,
     onSelectBase: (String) -> Unit
 ) {
+    val texts = state.texts
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val query = state.pickerQuery.trim()
     val filtered = CurrencyCatalog.all.filter { info ->
         query.isEmpty() ||
             info.code.contains(query, ignoreCase = true) ||
-            info.nameHe.contains(query)
+            info.nameHe.contains(query) ||
+            info.nameEn.contains(query, ignoreCase = true)
     }
 
     ModalBottomSheet(
@@ -415,9 +439,9 @@ private fun CurrencyPickerSheet(
                 .navigationBarsPadding()
                 .padding(horizontal = 16.dp)
         ) {
-            Text("בחירת מטבעות", style = MaterialTheme.typography.titleLarge)
+            Text(texts.pickerTitle, style = MaterialTheme.typography.titleLarge)
             Text(
-                "סמנו כמה מטבעות במקביל. לחיצה על הדגל תשנה את מטבע המקור.",
+                texts.pickerHint,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -427,7 +451,7 @@ private fun CurrencyPickerSheet(
                 onValueChange = onQuery,
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                placeholder = { Text("חיפוש לפי שם או קוד") },
+                placeholder = { Text(texts.searchPlaceholder) },
                 leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) }
             )
             Spacer(Modifier.height(8.dp))
@@ -440,6 +464,8 @@ private fun CurrencyPickerSheet(
                         info = info,
                         isBase = info.code == state.baseCurrency,
                         selected = info.code in state.selectedTargets,
+                        localeTag = state.localeTag,
+                        baseLabel = texts.baseCurrency,
                         onToggle = { onToggleTarget(info.code) },
                         onSelectBase = { onSelectBase(info.code) }
                     )
@@ -454,6 +480,8 @@ private fun CurrencyPickerRow(
     info: CurrencyInfo,
     isBase: Boolean,
     selected: Boolean,
+    localeTag: String,
+    baseLabel: String,
     onToggle: () -> Unit,
     onSelectBase: () -> Unit
 ) {
@@ -477,9 +505,9 @@ private fun CurrencyPickerRow(
         }
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
-            Text(info.nameHe, maxLines = 1, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.Medium)
+            Text(info.displayName(localeTag), maxLines = 1, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.Medium)
             Text(
-                text = if (isBase) "${info.code} · מטבע מקור" else info.code,
+                text = if (isBase) "${info.code} · $baseLabel" else info.code,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
@@ -492,39 +520,40 @@ private fun CurrencyPickerRow(
 }
 
 private fun statusText(state: ConverterUiState): String {
-    val updated = state.lastUpdatedMillis ?: return "טוען שערי מטבע…"
+    val texts = state.texts
+    val updated = state.lastUpdatedMillis ?: return texts.loadingStatus
     val time = android.text.format.DateFormat.format("HH:mm:ss", Date(updated))
     if (state.error != null) {
-        return "עדכון נכשל · מציג שער אחרון מ-$time"
+        return "${texts.updateFailed}$time"
     }
     val freshness = selectedFreshness(state)
     val session = when (state.marketSession) {
-        "weekend" -> " · סוף שבוע"
-        "interbank_closed" -> " · שוק סגור"
+        "weekend" -> texts.weekend
+        "interbank_closed" -> texts.marketClosed
         else -> ""
     }
-    return "עודכן ב-$time · $freshness$session · כל דקה במסך פתוח"
+    return "${texts.updatedAt}$time · $freshness$session${texts.everyMinute}"
 }
 
 private fun selectedFreshness(state: ConverterUiState): String {
     val sources = state.selectedTargets
         .filter { it != state.baseCurrency }
         .mapNotNull { state.rateSources[it] }
-    if (sources.isEmpty()) return "שער חי"
-    return if (sources.all { it == "live" }) "שער חי" else "שער מעורב"
+    if (sources.isEmpty()) return state.texts.liveRate
+    return if (sources.all { it == "live" }) state.texts.liveRate else state.texts.mixedRate
 }
 
-private fun sourceLabel(source: String?): String {
+private fun sourceLabel(source: String?, texts: UiText): String {
     return when (source) {
-        "live" -> "חי"
-        "ecb_daily" -> "יומי ECB"
-        "fred_daily" -> "יומי FRED"
-        else -> "חי"
+        "live" -> texts.sourceLive
+        "ecb_daily" -> texts.sourceEcb
+        "fred_daily" -> texts.sourceFred
+        else -> texts.sourceLive
     }
 }
 
-private fun formatMoney(amount: Double, code: String): String {
-    val locale = Locale("he", "IL")
+private fun formatMoney(amount: Double, code: String, localeTag: String): String {
+    val locale = if (localeTag == "en") Locale.US else Locale("he", "IL")
     return try {
         val format = NumberFormat.getCurrencyInstance(locale)
         format.currency = Currency.getInstance(code)
@@ -540,8 +569,9 @@ private fun formatMoney(amount: Double, code: String): String {
     }
 }
 
-private fun formatRate(rate: Double): String {
-    val format = NumberFormat.getNumberInstance(Locale("he", "IL"))
+private fun formatRate(rate: Double, localeTag: String): String {
+    val locale = if (localeTag == "en") Locale.US else Locale("he", "IL")
+    val format = NumberFormat.getNumberInstance(locale)
     format.maximumFractionDigits = if (rate < 1) 6 else 4
     format.minimumFractionDigits = 2
     return format.format(rate)
