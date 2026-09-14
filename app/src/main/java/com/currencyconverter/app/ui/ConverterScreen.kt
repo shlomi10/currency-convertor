@@ -205,7 +205,6 @@ fun ConverterScreen(viewModel: ConverterViewModel) {
                 items(state.rows, key = { it.code }) { row ->
                     ConversionCard(
                         row = row,
-                        baseCode = state.baseCurrency,
                         texts = texts,
                         localeTag = state.localeTag,
                         onRemove = { viewModel.removeTarget(row.code) },
@@ -362,7 +361,6 @@ private fun TargetsCard(
 @Composable
 private fun ConversionCard(
     row: ConversionRow,
-    baseCode: String,
     texts: UiText,
     localeTag: String,
     onRemove: () -> Unit,
@@ -401,12 +399,6 @@ private fun ConversionCard(
                     Icon(Icons.Outlined.Close, contentDescription = texts.remove)
                 }
             }
-            Text(
-                text = "1 $baseCode = ${formatRate(row.rate, localeTag)} ${row.code} · ${sourceLabel(row.source, texts)}",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(start = 30.dp, top = 2.dp)
-            )
         }
     }
 }
@@ -569,15 +561,6 @@ private fun selectedFreshness(state: ConverterUiState): String {
     return if (sources.all { it == "live" }) state.texts.liveRate else state.texts.mixedRate
 }
 
-private fun sourceLabel(source: String?, texts: UiText): String {
-    return when (source) {
-        "live" -> texts.sourceLive
-        "ecb_daily" -> texts.sourceEcb
-        "fred_daily" -> texts.sourceFred
-        else -> texts.sourceLive
-    }
-}
-
 private fun formatMoney(amount: Double, code: String, localeTag: String): String {
     val locale = if (localeTag == "en") Locale.US else Locale("he", "IL")
     return try {
@@ -593,12 +576,4 @@ private fun formatMoney(amount: Double, code: String, localeTag: String): String
         }
         "${number.format(amount)} $code"
     }
-}
-
-private fun formatRate(rate: Double, localeTag: String): String {
-    val locale = if (localeTag == "en") Locale.US else Locale("he", "IL")
-    val format = NumberFormat.getNumberInstance(locale)
-    format.maximumFractionDigits = if (rate < 1) 6 else 4
-    format.minimumFractionDigits = 2
-    return format.format(rate)
 }
