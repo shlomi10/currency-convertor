@@ -137,15 +137,25 @@ GitHub: [shlomi10](https://github.com/shlomi10)
 
 לחיצה ארוכה על מסך הבית → **ווידג'טים** → **ממיר מטבעות**.
 
-<div dir="rtl" align="right">
-
-| גודל | מה מוצג |
-| ---: | ---: |
-| קטן | הסכום ומטבע מומר אחד |
-| בינוני | הסכום ועד 3 מטבעות |
-| גדול | הסכום ועד 8 מטבעות |
-
-</div>
+<table align="right" dir="rtl">
+  <tr>
+    <th align="right">גודל</th>
+    <th align="right">מה מוצג</th>
+  </tr>
+  <tr>
+    <td align="right">קטן</td>
+    <td align="right">הסכום ומטבע מומר אחד</td>
+  </tr>
+  <tr>
+    <td align="right">בינוני</td>
+    <td align="right">הסכום ועד 3 מטבעות</td>
+  </tr>
+  <tr>
+    <td align="right">גדול</td>
+    <td align="right">הסכום ועד 8 מטבעות</td>
+  </tr>
+</table>
+<br clear="all" />
 
 לחיצה על הווידג'ט פותחת את האפליקציה. הווידג'ט משתמש בסכום ובמטבעות שבחרתם לאחרונה.
 
@@ -174,9 +184,3 @@ Kotlin + Jetpack Compose + Glance widgets.
 פלט ה־APK:
 
 `app/build/outputs/apk/debug/app-debug.apk`
-
-## יוצר
-
-<p dir="rtl" align="right"><strong>Shlomi</strong> תכנן, כתב ומתחזק את האפליקציה — ממשק, שערים, ווידג'טים, עברית/אנגלית, ופרסום ה־APK ב־GitHub.</p>
-
-GitHub: [shlomi10](https://github.com/shlomi10)
