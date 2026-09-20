@@ -1,6 +1,7 @@
 package com.currencyconverter.app.widget
 
 import android.content.Context
+import android.content.Intent
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -33,21 +34,21 @@ private val Mint = Color(0xFF4ECDC4)
 class SmallRatesWidget : GlanceAppWidget() {
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val data = WidgetData.load(context)
-        provideContent { RatesWidgetUi(data, maxRows = 1, compact = true) }
+        provideContent { RatesWidgetUi(context, data, maxRows = 1, compact = true) }
     }
 }
 
 class MediumRatesWidget : GlanceAppWidget() {
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val data = WidgetData.load(context)
-        provideContent { RatesWidgetUi(data, maxRows = 3, compact = false) }
+        provideContent { RatesWidgetUi(context, data, maxRows = 3, compact = false) }
     }
 }
 
 class LargeRatesWidget : GlanceAppWidget() {
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val data = WidgetData.load(context)
-        provideContent { RatesWidgetUi(data, maxRows = 8, compact = false) }
+        provideContent { RatesWidgetUi(context, data, maxRows = 8, compact = false) }
     }
 }
 
@@ -72,13 +73,13 @@ object RatesWidgets {
 }
 
 @Composable
-private fun RatesWidgetUi(data: WidgetSnapshot, maxRows: Int, compact: Boolean) {
+private fun RatesWidgetUi(context: Context, data: WidgetSnapshot, maxRows: Int, compact: Boolean) {
     val rows = data.rows.take(maxRows)
     Column(
         modifier = GlanceModifier
             .fillMaxSize()
             .background(Teal)
-            .clickable(actionStartActivity<MainActivity>())
+            .clickable(actionStartActivity(Intent(context, MainActivity::class.java)))
             .padding(if (compact) 8.dp else 12.dp)
     ) {
             Text(

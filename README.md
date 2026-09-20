@@ -37,7 +37,7 @@
 
 # English
 
-A compact Android currency converter written by **Shlomi**. Type an amount, pick the currencies you care about, and see every conversion on one screen.
+Type an amount, pick the currencies you care about, and see every conversion on one screen.
 
 The app is **not** on Google Play. Every push to `main` builds a real APK and publishes it as a GitHub Release.
 
@@ -109,7 +109,7 @@ GitHub: [shlomi10](https://github.com/shlomi10)
 
 # עברית
 
-ממיר מטבעות קומפקטי לאנדרואיד שכתב **Shlomi**. מקלידים סכום, בוחרים מטבעות, ורואים את כל ההמרות במסך אחד.
+מקלידים סכום, בוחרים מטבעות, ורואים את כל ההמרות במסך אחד.
 
 האפליקציה **לא** ב־Google Play. בכל דחיפה ל־`main` נבנה APK אמיתי ומפורסם ב־GitHub Releases.
 
