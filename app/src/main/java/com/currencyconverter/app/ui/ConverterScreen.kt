@@ -57,6 +57,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
@@ -70,6 +71,9 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.currencyconverter.app.data.CurrencyCatalog
 import com.currencyconverter.app.data.CurrencyInfo
+import com.currencyconverter.app.ui.theme.Cream
+import com.currencyconverter.app.ui.theme.Ink
+import com.currencyconverter.app.ui.theme.TealDark
 import java.text.NumberFormat
 import java.util.Currency
 import java.util.Date
@@ -263,24 +267,27 @@ private fun AmountCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                val fieldColors = MaterialTheme.colorScheme
                 BasicTextField(
                     value = state.amountInput,
                     onValueChange = onAmountChange,
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxWidth()
-                        .height(44.dp),
+                        .height(44.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Cream)
+                        .padding(horizontal = 12.dp),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    cursorBrush = SolidColor(TealDark),
                     textStyle = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.Bold,
-                        color = fieldColors.onSurface
+                        color = Ink
                     ),
                     decorationBox = { inner ->
                         Box(Modifier.fillMaxHeight(), contentAlignment = Alignment.CenterStart) {
                             if (state.amountInput.isEmpty()) {
-                                Text("0", style = MaterialTheme.typography.headlineSmall, color = fieldColors.onSurfaceVariant)
+                                Text("0", style = MaterialTheme.typography.headlineSmall, color = Ink.copy(alpha = 0.4f))
                             }
                             inner()
                         }
