@@ -22,7 +22,11 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        val factory = ConverterViewModelFactory(RatesRepository(), PrefsStore(applicationContext))
+        val factory = ConverterViewModelFactory(
+            RatesRepository(),
+            PrefsStore(applicationContext),
+            applicationContext
+        )
         setContent {
             CurrencyConverterTheme {
                 val vm: ConverterViewModel = viewModel(factory = factory)

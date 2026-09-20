@@ -24,12 +24,11 @@ jobs:
       - name: Build debug APK
         run: java -Xmx64m -Xms64m -Dfile.encoding=UTF-8 -classpath gradle/wrapper/gradle-wrapper.jar org.gradle.wrapper.GradleWrapperMain assembleDebug --no-daemon
 
-      - name: Prepare APK
-        run: cp app/build/outputs/apk/debug/app-debug.apk currency-convertor.apk
-
       - name: Publish APK
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release delete latest --yes --cleanup-tag || true
-          gh release create latest currency-convertor.apk --title "Latest APK" --notes "Download currency-convertor.apk and install it on your phone." --latest
+          VERSION=$(python -c "import re; t=open('app/build.gradle.kts').read(); print(re.search(r'versionName = \"([^\"]+)\"', t).group(1))")
+          TAG="v${VERSION}.${GITHUB_RUN_NUMBER}"
+          cp app/build/outputs/apk/debug/app-debug.apk "currency-convertor-${TAG}.apk"
+          gh release create "$TAG" "currency-convertor-${TAG}.apk" --title "$TAG" --notes "Currency Convertor ${TAG}. Download the APK and install it on your phone." --latest

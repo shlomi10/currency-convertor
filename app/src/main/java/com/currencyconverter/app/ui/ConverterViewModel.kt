@@ -1,11 +1,13 @@
 package com.currencyconverter.app.ui
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.currencyconverter.app.data.CurrencyCatalog
 import com.currencyconverter.app.data.PrefsStore
 import com.currencyconverter.app.data.RatesRepository
+import com.currencyconverter.app.widget.RatesWidgets
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -69,7 +71,8 @@ data class ConverterUiState(
 
 class ConverterViewModel(
     private val repository: RatesRepository,
-    private val prefs: PrefsStore
+    private val prefs: PrefsStore,
+    private val appContext: Context
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(
@@ -80,7 +83,9 @@ class ConverterViewModel(
                 .filter { code -> CurrencyCatalog.all.any { it.code == code } }
                 .toSet()
                 .ifEmpty { setOf("USD", "EUR", "GBP") },
-            language = if (prefs.loadLanguage() == "en") AppLanguage.EN else AppLanguage.HE
+            language = if (prefs.loadLanguage() == "en") AppLanguage.EN else AppLanguage.HE,
+            rates = prefs.loadRates(),
+            lastUpdatedMillis = prefs.loadRatesAt()
         )
     )
     val state: StateFlow<ConverterUiState> = _state
@@ -164,6 +169,7 @@ class ConverterViewModel(
         try {
             val snapshot = repository.fetchRates(base)
             if (base != _state.value.baseCurrency) return
+            prefs.saveRates(snapshot.rates, snapshot.fetchedAtMillis)
             _state.update {
                 it.copy(
                     rates = snapshot.rates,
@@ -174,6 +180,7 @@ class ConverterViewModel(
                     error = null
                 )
             }
+            RatesWidgets.updateAll(appContext)
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -201,16 +208,20 @@ class ConverterViewModel(
             current.selectedTargets,
             if (current.language == AppLanguage.EN) "en" else "he"
         )
+        viewModelScope.launch {
+            RatesWidgets.updateAll(appContext)
+        }
     }
 }
 
 class ConverterViewModelFactory(
     private val repository: RatesRepository,
-    private val prefs: PrefsStore
+    private val prefs: PrefsStore,
+    private val appContext: Context
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return ConverterViewModel(repository, prefs) as T
+        return ConverterViewModel(repository, prefs, appContext) as T
     }
 }
 

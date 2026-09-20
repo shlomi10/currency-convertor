@@ -69,6 +69,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.currencyconverter.app.BuildConfig
 import com.currencyconverter.app.data.CurrencyCatalog
 import com.currencyconverter.app.data.CurrencyInfo
 import com.currencyconverter.app.ui.theme.Cream
@@ -232,12 +233,31 @@ fun ConverterScreen(viewModel: ConverterViewModel) {
                 }
 
                 item {
-                    Text(
-                        text = texts.attribution,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)
-                    )
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Button(onClick = openMenu) {
+                            Text(texts.manageCurrencies)
+                        }
+                        Spacer(Modifier.height(12.dp))
+                        Text(
+                            text = texts.attribution,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            text = texts.createdBy,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = "${texts.versionLabel} ${BuildConfig.VERSION_NAME}",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
 
                 item { Spacer(Modifier.height(24.dp)) }

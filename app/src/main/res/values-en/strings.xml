@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Currency Converter</string>
+    <string name="widget_small">Currency converter small</string>
+    <string name="widget_medium">Currency converter medium</string>
+    <string name="widget_large">Currency converter large</string>
+</resources>

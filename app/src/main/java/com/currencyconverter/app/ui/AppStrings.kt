@@ -35,7 +35,10 @@ data class UiText(
     val sourceFred: String,
     val networkError: String,
     val genericError: String,
-    val languageToggle: String
+    val languageToggle: String,
+    val manageCurrencies: String,
+    val createdBy: String,
+    val versionLabel: String
 )
 
 fun AppLanguage.texts(): UiText = when (this) {
@@ -72,7 +75,10 @@ fun AppLanguage.texts(): UiText = when (this) {
         sourceFred = "יומי FRED",
         networkError = "שגיאת רשת",
         genericError = "לא ניתן לעדכן שערים כרגע",
-        languageToggle = "EN"
+        languageToggle = "EN",
+        manageCurrencies = "נהל מטבעות",
+        createdBy = "Created by Shlomi",
+        versionLabel = "גרסה"
     )
     AppLanguage.EN -> UiText(
         appTitle = "Currency Converter",
@@ -107,6 +113,9 @@ fun AppLanguage.texts(): UiText = when (this) {
         sourceFred = "FRED daily",
         networkError = "Network error",
         genericError = "Could not refresh rates right now",
-        languageToggle = "עב"
+        languageToggle = "עב",
+        manageCurrencies = "Manage currencies",
+        createdBy = "Created by Shlomi",
+        versionLabel = "Version"
     )
 }

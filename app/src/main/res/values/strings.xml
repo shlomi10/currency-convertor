@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">ממיר מטבעות</string>
+    <string name="widget_small">ממיר מטבעות קטן</string>
+    <string name="widget_medium">ממיר מטבעות בינוני</string>
+    <string name="widget_large">ממיר מטבעות גדול</string>
 </resources>
